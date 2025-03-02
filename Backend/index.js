@@ -1,4 +1,6 @@
 const express = require("express")
+const JWT = require("jsonwebtoken")
+
 const app = express();
 app.use(express.json());
 
@@ -14,27 +16,28 @@ app.post("/signup", function(req, res) {
     const pass = newUser.Password;
 
     if(!userID){
-        res.send('USER NAME is required');
+        res.status(400).send('USER NAME is required');
     }
 
     if(!pass){
-        res.send('Password is required!');
+        res.sendStatus(400).send('Password is required!');
     }
 
-    for(let i=0; i < usersDetails.length; i++){
-        if(usersDetails[i].userName === userID){
-            res.send('This User already exists, Try Again!');
-        }
+    const userDetail = usersDetails.find(u => u.userName === userID);  
+
+    if(userDetail){
+        res.status(409).send('This user already exists, Try Again!');
     }
+
 
     const user = {
-    userName: newUser.userName,
-    Password: newUser.Password
+        userName: newUser.userName,
+        Password: newUser.Password
     };
 
 
     usersDetails.push(user);
-    res.send('Signed up successfully');
+    res.status(200).send('Signed up successfully');
 
 })
 
@@ -44,26 +47,19 @@ app.post('/login', function(req, res){
     const pass = user.Password;
     
     if(!userID){
-        res.send('USER NAME is required');
+        res.status(400).send('USER NAME is required');
     }
 
     if(!pass){
-        res.send('Password is required!');
+        res.status(400).send('Password is required!');
     }
-    
 
-    let flag = false;
-    for(let i = 0; i < usersDetails.length; i++){ 
-        if(usersDetails[i].userName == userID && usersDetails[i].Password == pass){
-            flag = true;
-            break;
-        }
-    }
-    if(flag === true){
-        return res.send('login successfull');
+    const userDetail = usersDetails.find(u => u.userName === userID && u.Password === pass);
+    if(userDetail){
+        return res.status(200).send('login successfull');
     }
     else{
-        return res.send('Incorrect credentials');
+        return res.status(401).send('Incorrect credentials');
     }
 })
 
